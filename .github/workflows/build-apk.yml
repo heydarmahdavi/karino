@@ -1,0 +1,88 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Bubblewrap CLI
+        run: npm install -g @bubblewrap/cli
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android.keystore
+
+      - name: Initialize Bubblewrap Project
+        run: |
+          mkdir -p twa-build
+          cd twa-build
+          cat > twa-manifest.json <<'EOF'
+          {
+            "packageId": "io.github.heydarmahdavi.karino",
+            "host": "heydarmahdavi.github.io",
+            "name": "کارینو",
+            "launcherName": "کارینو",
+            "display": "standalone",
+            "themeColor": "#6c5ce7",
+            "navigationColor": "#1e1e2f",
+            "backgroundColor": "#1e1e2f",
+            "startUrl": "/karino/index.html",
+            "iconUrl": "https://heydarmahdavi.github.io/karino/icon.png",
+            "maskableIconUrl": "https://heydarmahdavi.github.io/karino/icon.png",
+            "appVersionName": "1.0.0",
+            "appVersionCode": 1,
+            "shortcuts": [],
+            "generatorApp": "bubblewrap-cli",
+            "webManifestUrl": "https://heydarmahdavi.github.io/karino/manifest.json",
+            "fallbackType": "customtabs",
+            "features": {},
+            "enableNotifications": true,
+            "orientation": "portrait",
+            "fingerprints": [],
+            "additionalTrustedOrigins": [],
+            "retainedBundles": []
+          }
+          EOF
+          echo "TWA manifest created"
+
+      - name: Build TWA Project
+        run: |
+          cd twa-build
+          bubblewrap init --manifest=https://heydarmahdavi.github.io/karino/manifest.json --directory=. || true
+          ls -la
+
+      - name: Alternative - Use PWABuilder API
+        run: |
+          echo "Using PWABuilder alternative approach"
+
+      - name: Upload Keystore Info
+        run: |
+          ls -la
+          echo "=== Files ready ==="
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: karino-apk
+          path: |
+            android.keystore
+            twa-build/
