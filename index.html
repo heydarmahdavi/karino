@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#6c5ce7">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>کارینو</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <button id="themeBtn" class="theme-toggle">☀️</button>
+    <button id="settingsBtn" class="settings-toggle" title="تنظیمات">⚙️</button>
+
+    <!-- ================= داشبورد ================= -->
+    <section id="dashboardPage" class="page active">
+      <h1>🏠 داشبورد</h1>
+
+      <div class="streak-row">
+        <div class="streak-card" id="streakCard">
+          <div class="streak-icon">🔥</div>
+          <div class="streak-info">
+            <div class="streak-num" id="streakNum">۰</div>
+            <div class="streak-label">روز پشت‌هم</div>
+          </div>
+        </div>
+
+        <div class="achievements-card" id="achievementsCard">
+          <div class="ach-icon">🏆</div>
+          <div class="ach-info">
+            <div class="ach-num" id="achNum">۰/۱۰</div>
+            <div class="ach-label">دستاورد</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="goal-card" id="goalCard">
+        <div class="goal-header">
+          <span class="goal-title">🎯 هدف امروز</span>
+          <button id="editGoalBtn" class="goal-edit-btn" title="تنظیم هدف">⚙️</button>
+        </div>
+        <div class="goal-progress-wrap">
+          <div class="goal-progress-bar">
+            <div class="goal-progress-fill" id="goalFill"></div>
+          </div>
+          <div class="goal-progress-text" id="goalText">۰ از ۵</div>
+        </div>
+        <div class="goal-message" id="goalMessage"></div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card clickable" data-jump="all">
+          <div class="stat-title">📋 کل کارها</div>
+          <div class="stat-row">
+            <div class="stat-col"><span class="stat-num" id="allTotal">0</span><span class="stat-label">کل</span></div>
+            <div class="stat-col"><span class="stat-num done-num" id="allDone">0</span><span class="stat-label">انجام</span></div>
+            <div class="stat-col"><span class="stat-num pending-num" id="allPending">0</span><span class="stat-label">باقی</span></div>
+          </div>
+        </div>
+
+        <div class="stat-card today clickable" data-jump="today">
+          <div class="stat-title">📅 کارهای امروز</div>
+          <div class="stat-row">
+            <div class="stat-col"><span class="stat-num" id="todayTotal">0</span><span class="stat-label">کل</span></div>
+            <div class="stat-col"><span class="stat-num done-num" id="todayDone">0</span><span class="stat-label">انجام</span></div>
+            <div class="stat-col"><span class="stat-num pending-num" id="todayPending">0</span><span class="stat-label">باقی</span></div>
+          </div>
+        </div>
+
+        <div class="stat-card tomorrow clickable" data-jump="tomorrow">
+          <div class="stat-title">📅 کارهای فردا</div>
+          <div class="stat-row">
+            <div class="stat-col"><span class="stat-num" id="tomTotal">0</span><span class="stat-label">کل</span></div>
+            <div class="stat-col"><span class="stat-num done-num" id="tomDone">0</span><span class="stat-label">انجام</span></div>
+            <div class="stat-col"><span class="stat-num pending-num" id="tomPending">0</span><span class="stat-label">باقی</span></div>
+          </div>
+        </div>
+
+        <div class="stat-card done clickable" data-jump="done">
+          <div class="stat-title">✅ انجام‌شده‌ها</div>
+          <div class="stat-simple"><span class="stat-num done-num" id="doneDone">0</span></div>
+        </div>
+
+        <div class="stat-card pending clickable" data-jump="pending">
+          <div class="stat-title">⏳ باقی‌مانده‌ها</div>
+          <div class="stat-simple"><span class="stat-num pending-num" id="pendPending">0</span></div>
+        </div>
+      </div>
+
+      <div class="chart-box">
+        <div class="chart-header"><h2>📊 نمودار پیشرفت</h2></div>
+        <div class="chart-controls">
+          <div class="chart-range-btns">
+            <button class="range-btn active" data-range="week">هفتگی</button>
+            <button class="range-btn" data-range="month">ماهانه</button>
+            <button class="range-btn" data-range="year">سالانه</button>
+          </div>
+          <div class="chart-type-btns">
+            <button class="type-btn active" data-type="bar" title="میله‌ای">📊</button>
+            <button class="type-btn" data-type="line" title="خطی">📈</button>
+            <button class="type-btn" data-type="doughnut" title="دایره‌ای">🍩</button>
+          </div>
+        </div>
+        <div class="chart-canvas-wrap"><canvas id="chartCanvas"></canvas></div>
+        <div class="chart-summary" id="chartSummary"></div>
+      </div>
+
+      <div class="done-history">
+        <h2>✅ کارهای انجام‌شده تا امروز</h2>
+        <div id="doneHistoryList"></div>
+      </div>
+    </section>
+
+    <!-- ================= لیست کارها ================= -->
+    <section id="tasksPage" class="page">
+      <h1>📋 لیست کارها</h1>
+
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="جستجو در کارها...">
+        <button id="clearSearchBtn" class="clear-search" style="display:none;">✖</button>
+      </div>
+
+      <div class="input-box">
+        <input type="text" id="taskInput" placeholder="یه کار جدید بنویس...">
+
+        <!-- 🔥 ردیف فیلدها با برچسب -->
+        <div class="field-group">
+          <label class="field-label">📅 تاریخ</label>
+          <button type="button" id="taskDateBtn" class="field-btn date-display-btn">
+            <span id="taskDateLabel">امروز</span>
+          </button>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">⏰ ساعت یادآور</label>
+          <input type="time" id="taskTime" class="field-input">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">🎚️ اولویت</label>
+          <select id="prioritySelect" class="field-input">
+            <option value="normal">🟢 عادی</option>
+            <option value="medium">🟡 متوسط</option>
+            <option value="high">🔴 مهم</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">🏷️ دسته</label>
+          <select id="tagSelect" class="field-input">
+            <option value="">بدون دسته</option>
+          </select>
+        </div>
+
+        <!-- تکرار -->
+        <div class="repeat-row">
+          <label class="repeat-toggle">
+            <input type="checkbox" id="repeatCheck">
+            <span class="repeat-toggle-label">🔁 تکرار</span>
+          </label>
+          <select id="repeatType" class="repeat-type-select" style="display:none;">
+            <option value="daily">هر روز</option>
+            <option value="weekly">هر هفته</option>
+            <option value="monthly">هر ماه</option>
+            <option value="custom">روزهای خاص هفته</option>
+          </select>
+        </div>
+
+        <div id="weekdaysRow" class="weekdays-row" style="display:none;">
+          <button class="weekday-btn" data-day="6">شنبه</button>
+          <button class="weekday-btn" data-day="0">یکشنبه</button>
+          <button class="weekday-btn" data-day="1">دوشنبه</button>
+          <button class="weekday-btn" data-day="2">سه‌شنبه</button>
+          <button class="weekday-btn" data-day="3">چهارشنبه</button>
+          <button class="weekday-btn" data-day="4">پنجشنبه</button>
+          <button class="weekday-btn" data-day="5">جمعه</button>
+        </div>
+
+        <input type="text" id="subtaskInput" class="subtask-input" placeholder="➕ زیرکار (اختیاری)...">
+        <button id="addBtn">افزودن</button>
+      </div>
+
+      <div class="filters">
+        <button class="filter-btn active" data-filter="all">همه</button>
+        <button class="filter-btn" data-filter="high">🔴 مهم</button>
+        <button class="filter-btn" data-filter="medium">🟡 متوسط</button>
+        <button class="filter-btn" data-filter="normal">🟢 عادی</button>
+        <button id="clearAllBtn" class="clear-btn">🗑 پاک کردن همه</button>
+      </div>
+
+      <div class="tags-bar">
+        <div class="tags-list" id="tagsList"></div>
+        <button id="manageTagsBtn" class="manage-tags-btn" title="مدیریت دسته‌ها">⚙️</button>
+      </div>
+
+      <div id="taskList"></div>
+      <p id="emptyMsg" class="empty">هنوز هیچ کاری نداری مهندس! 😴</p>
+    </section>
+
+    <!-- ================= 📅 تقویم ================= -->
+    <section id="calendarPage" class="page">
+      <h1>📅 تقویم</h1>
+
+      <div class="calendar-header">
+        <button id="calPrevMonth" class="cal-nav-btn">‹</button>
+        <div class="cal-title-wrap">
+          <span id="calMonthName" class="cal-month-name">ماه</span>
+          <span id="calYearName" class="cal-year-name">۱۴۰۳</span>
+        </div>
+        <button id="calNextMonth" class="cal-nav-btn">›</button>
+      </div>
+
+      <div class="calendar-weekdays">
+        <span>ش</span>
+        <span>ی</span>
+        <span>د</span>
+        <span>س</span>
+        <span>چ</span>
+        <span>پ</span>
+        <span>ج</span>
+      </div>
+
+      <div class="calendar-grid" id="calendarGrid"></div>
+
+      <button id="calTodayBtn" class="cal-today-btn">📍 برو به امروز</button>
+
+      <div class="calendar-legend">
+        <div class="legend-item"><span class="legend-dot dot-0"></span> بدون کار</div>
+        <div class="legend-item"><span class="legend-dot dot-1"></span> ۱-۲ کار</div>
+        <div class="legend-item"><span class="legend-dot dot-2"></span> ۳-۵ کار</div>
+        <div class="legend-item"><span class="legend-dot dot-3"></span> ۶+ کار</div>
+      </div>
+    </section>
+
+    <!-- ================= صفحه نمایش روز ================= -->
+    <section id="viewPage" class="page">
+      <div class="view-header">
+        <button id="backBtn" class="back-btn">← بازگشت</button>
+        <h1 id="viewTitle">کارها</h1>
+      </div>
+
+      <div id="viewList"></div>
+      <p id="viewEmpty" class="empty" style="display:none;">چیزی برای نمایش نیست.</p>
+    </section>
+
+    <!-- ================= نوار پایین ================= -->
+    <nav class="bottom-nav" id="bottomNav">
+      <button class="nav-btn active" data-page="dashboardPage">
+        <span>🏠</span>
+        <small>داشبورد</small>
+      </button>
+      <button class="nav-btn" data-page="tasksPage">
+        <span>📋</span>
+        <small>کارها</small>
+      </button>
+      <button class="nav-btn" data-page="calendarPage">
+        <span>📅</span>
+        <small>تقویم</small>
+      </button>
+    </nav>
+  </div>
+
+  <!-- مودال دسته‌ها -->
+  <div class="modal-overlay" id="tagsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>🏷️ مدیریت دسته‌ها</h2>
+        <button id="closeTagsModal" class="modal-close">✖</button>
+      </div>
+      <div class="modal-body">
+        <div class="add-tag-row">
+          <input type="text" id="newTagName" placeholder="نام دسته جدید...">
+          <input type="color" id="newTagColor" value="#6c5ce7" class="color-picker">
+          <button id="addTagBtn">افزودن</button>
+        </div>
+        <div id="tagsManageList" class="tags-manage-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال انتخاب تاریخ شمسی -->
+  <div class="modal-overlay" id="datePickerModal">
+    <div class="modal date-picker-modal">
+      <div class="modal-header">
+        <h2 id="datePickerTitle">📅 انتخاب تاریخ</h2>
+        <button id="closeDatePicker" class="modal-close">✖</button>
+      </div>
+      <div class="modal-body">
+        <div class="calendar-header">
+          <button id="dpPrevMonth" class="cal-nav-btn">‹</button>
+          <div class="cal-title-wrap">
+            <span id="dpMonthName" class="cal-month-name">ماه</span>
+            <span id="dpYearName" class="cal-year-name">۱۴۰۳</span>
+          </div>
+          <button id="dpNextMonth" class="cal-nav-btn">›</button>
+        </div>
+
+        <div class="calendar-weekdays">
+          <span>ش</span>
+          <span>ی</span>
+          <span>د</span>
+          <span>س</span>
+          <span>چ</span>
+          <span>پ</span>
+          <span>ج</span>
+        </div>
+
+        <div class="calendar-grid" id="dpCalendarGrid"></div>
+
+        <div class="dp-shortcuts">
+          <button class="dp-shortcut-btn" data-days="0">📍 امروز</button>
+          <button class="dp-shortcut-btn" data-days="1">⏭ فردا</button>
+          <button class="dp-shortcut-btn" data-days="7">📆 یه هفته بعد</button>
+          <button class="dp-shortcut-btn" data-days="30">🗓 یه ماه بعد</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال ویرایش -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>✏️ ویرایش کار</h2>
+        <button id="closeEditModal" class="modal-close">✖</button>
+      </div>
+      <div class="modal-body">
+        <div class="edit-field">
+          <label class="edit-label">📝 متن کار</label>
+          <input type="text" id="editTaskText" class="edit-field-input" placeholder="متن کار...">
+        </div>
+        <div class="edit-field-row">
+          <div class="edit-field">
+            <label class="edit-label">📅 تاریخ</label>
+            <button type="button" id="editTaskDateBtn" class="edit-field-input edit-date-display-btn">
+              <span id="editTaskDateLabel">امروز</span>
+            </button>
+          </div>
+          <div class="edit-field">
+            <label class="edit-label">⏰ ساعت یادآور</label>
+            <input type="time" id="editTaskTime" class="edit-field-input">
+          </div>
+        </div>
+        <div class="edit-field-row">
+          <div class="edit-field">
+            <label class="edit-label">🎚️ اولویت</label>
+            <select id="editTaskPriority" class="edit-field-input">
+              <option value="normal">🟢 عادی</option>
+              <option value="medium">🟡 متوسط</option>
+              <option value="high">🔴 مهم</option>
+            </select>
+          </div>
+          <div class="edit-field">
+            <label class="edit-label">🏷️ دسته</label>
+            <select id="editTaskTag" class="edit-field-input">
+              <option value="">🏷️ بدون دسته</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 🔥 اطلاعات تکرار با ۲ دکمه -->
+        <div id="editRepeatInfo" class="edit-repeat-info" style="display:none;">
+          <div class="edit-repeat-text">
+            <span>🔁 این کار تکرارشونده است:</span>
+            <span id="editRepeatLabel" class="edit-repeat-badge">هر روز</span>
+          </div>
+          <div class="repeat-actions">
+            <button id="stopRepeatBtn" class="stop-repeat-btn" title="توقف تکرار (نسخه‌های آینده حذف می‌شن)">⏹ توقف</button>
+            <button id="deleteAllRepeatBtn" class="delete-all-repeat-btn" title="حذف کامل همه نسخه‌ها">🗑 حذف کامل</button>
+          </div>
+        </div>
+
+        <div class="edit-field">
+          <label class="edit-label">📝 زیرکارها</label>
+          <div id="editSubtasksList" class="edit-subtasks-list"></div>
+          <div class="edit-add-subtask">
+            <input type="text" id="editNewSubtask" class="edit-field-input" placeholder="➕ زیرکار جدید...">
+            <button id="editAddSubtaskBtn" class="edit-add-subtask-btn">افزودن</button>
+          </div>
+        </div>
+
+        <div class="edit-actions">
+          <button id="editSaveBtn" class="edit-save-btn">💾 ذخیره تغییرات</button>
+          <button id="editCancelBtn" class="edit-cancel-btn">انصراف</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال دستاوردها -->
+  <div class="modal-overlay" id="achievementsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>🏆 دستاوردهای من</h2>
+        <button id="closeAchModal" class="modal-close">✖</button>
+      </div>
+      <div class="modal-body">
+        <div class="ach-summary">
+          <div class="ach-summary-num" id="achSummaryNum">۰/۱۰</div>
+          <div class="ach-summary-label">دستاورد کسب شده</div>
+        </div>
+        <div id="achievementsList" class="achievements-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- تنظیمات -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>⚙️ تنظیمات</h2>
+        <button id="closeSettingsModal" class="modal-close">✖</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-section">
+          <h3 class="settings-section-title">🎯 هدف روزانه</h3>
+          <p class="settings-desc">روزی چند تا کار می‌خوای انجام بدی؟</p>
+          <div class="goal-setting-row">
+            <button class="goal-num-btn" data-goal="1">۱</button>
+            <button class="goal-num-btn" data-goal="3">۳</button>
+            <button class="goal-num-btn" data-goal="5">۵</button>
+            <button class="goal-num-btn" data-goal="10">۱۰</button>
+            <input type="number" id="customGoalInput" class="goal-custom-input" placeholder="دلخواه" min="1" max="99">
+          </div>
+          <button id="saveGoalBtn" class="settings-btn import-btn"><span>💾 ذخیره هدف</span></button>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="settings-section-title">🔊 صداها</h3>
+          <p class="settings-desc">صدای تعامل با اپ. (می‌تونی خاموش کنی)</p>
+
+          <div class="sound-toggle-row">
+            <label class="switch">
+              <input type="checkbox" id="soundEnabled" checked>
+              <span class="switch-slider"></span>
+            </label>
+            <span class="sound-toggle-label">🔊 صداها فعال</span>
+          </div>
+
+          <div class="sound-volume-row">
+            <span class="sound-volume-label">🔉 حجم صدا</span>
+            <input type="range" id="soundVolume" class="sound-volume-slider" min="0" max="100" value="60">
+            <span class="sound-volume-value" id="soundVolumeValue">۶۰٪</span>
+          </div>
+
+          <div class="sound-test-row">
+            <button class="sound-test-btn" data-sound="tick">🔘 تیک</button>
+            <button class="sound-test-btn" data-sound="add">➕ افزودن</button>
+            <button class="sound-test-btn" data-sound="delete">🗑 حذف</button>
+            <button class="sound-test-btn" data-sound="celebrate">🎉 جشن</button>
+            <button class="sound-test-btn" data-sound="achievement">🏆 دستاورد</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="settings-section-title">🔔 یادآور و نوتیفیکیشن</h3>
+          <p class="settings-desc">برای اینکه یادآورها کار کنن، اجازه نوتیفیکیشن لازمه.</p>
+          <button id="askNotifBtn" class="settings-btn import-btn">
+            <span id="notifBtnText">🔔 اجازه نوتیفیکیشن</span>
+          </button>
+          <div class="notif-status" id="notifStatus"></div>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="settings-section-title">💾 پشتیبان‌گیری</h3>
+          <p class="settings-desc">یه فایل از همه کارها و دسته‌هات بگیر.</p>
+          <button id="exportBtn" class="settings-btn export-btn"><span>💾 خروجی گرفتن</span></button>
+          <button id="importBtn" class="settings-btn import-btn"><span>📥 بازیابی از فایل</span></button>
+          <input type="file" id="importFile" accept=".json,application/json" style="display:none;">
+          <div class="export-info" id="exportInfo">
+            <span class="info-label">📊 آمار فعلی:</span>
+            <span id="exportStats">—</span>
+          </div>
+        </div>
+
+        <div class="settings-section danger">
+          <h3 class="settings-section-title">⚠️ منطقه خطر</h3>
+          <p class="settings-desc">پاک کردن همه کارها و دسته‌ها. غیرقابل بازگشت!</p>
+          <button id="resetAllBtn" class="settings-btn danger-btn"><span>🗑 پاک کردن همه چیز</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال هدف -->
+  <div class="modal-overlay" id="goalModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>🎯 هدف امروز</h2>
+        <button id="closeGoalModal" class="modal-close">✖</button>
+      </div>
+      <div class="modal-body">
+        <p class="settings-desc">چند تا کار می‌خوای امروز انجام بدی؟</p>
+        <div class="goal-setting-row">
+          <button class="goal-num-btn" data-goal="1">۱</button>
+          <button class="goal-num-btn" data-goal="3">۳</button>
+          <button class="goal-num-btn" data-goal="5">۵</button>
+          <button class="goal-num-btn" data-goal="10">۱۰</button>
+          <input type="number" id="customGoalInput2" class="goal-custom-input" placeholder="دلخواه" min="1" max="99">
+        </div>
+        <button id="saveGoalBtn2" class="settings-btn import-btn" style="margin-top:12px;"><span>💾 ذخیره</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="script.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js")
+          .then(() => console.log("✅ Service Worker registered"))
+          .catch((err) => console.log("❌ SW error:", err));
+      });
+    }
+  </script>
+</body>
+</html>
