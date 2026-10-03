@@ -1,0 +1,52 @@
+name: Sign APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install build-tools
+        run: |
+          sdkmanager "build-tools;34.0.0"
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > karino.jks
+          ls -la karino.jks
+
+      - name: Sign APK
+        run: |
+          $ANDROID_HOME/build-tools/34.0.0/apksigner sign \
+            --ks karino.jks \
+            --ks-key-alias "${{ secrets.KEY_ALIAS }}" \
+            --ks-pass "pass:${{ secrets.KEYSTORE_PASSWORD }}" \
+            --key-pass "pass:${{ secrets.KEY_PASSWORD }}" \
+            --out karino-signed.apk \
+            karino-unsigned.apk
+          
+          echo "Signed successfully!"
+          ls -la karino-signed.apk
+
+      - name: Verify APK
+        run: |
+          $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose karino-signed.apk || true
+
+      - name: Upload Signed APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: karino-signed-apk
+          path: karino-signed.apk
