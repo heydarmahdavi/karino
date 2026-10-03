@@ -16,34 +16,39 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Download Android command line tools
+        run: |
+          cd /tmp
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q commandlinetools-linux-11076708_latest.zip
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          mv cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
 
-      - name: Accept all SDK licenses
+      - name: Accept licenses and install build-tools
         run: |
           yes | sdkmanager --licenses || true
-
-      - name: Install build-tools
-        run: |
           sdkmanager "build-tools;34.0.0"
           sdkmanager --list_installed
-
-      - name: Find apksigner
-        id: find_apksigner
-        run: |
-          APKSIGNER=$(find $ANDROID_HOME -name "apksigner" -type f | head -1)
-          echo "Found apksigner: $APKSIGNER"
-          echo "path=$APKSIGNER" >> $GITHUB_OUTPUT
 
       - name: Decode Keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > karino.jks
           ls -la karino.jks
+          file karino.jks
+
+      - name: List repo files
+        run: ls -la
 
       - name: Sign APK
         run: |
-          chmod +x ${{ steps.find_apksigner.outputs.path }}
-          ${{ steps.find_apksigner.outputs.path }} sign \
+          APKSIGNER="$HOME/android-sdk/build-tools/34.0.0/apksigner"
+          echo "Using: $APKSIGNER"
+          chmod +x "$APKSIGNER"
+          
+          "$APKSIGNER" sign \
             --ks karino.jks \
             --ks-key-alias "${{ secrets.KEY_ALIAS }}" \
             --ks-pass "pass:${{ secrets.KEYSTORE_PASSWORD }}" \
@@ -54,9 +59,9 @@ jobs:
           echo "✅ Signed successfully!"
           ls -la karino-signed.apk
 
-      - name: Verify APK
+      - name: Verify
         run: |
-          ${{ steps.find_apksigner.outputs.path }} verify --verbose karino-signed.apk || true
+          "$HOME/android-sdk/build-tools/34.0.0/apksigner" verify --verbose karino-signed.apk || true
 
       - name: Upload Signed APK
         uses: actions/upload-artifact@v4
