@@ -37,15 +37,10 @@ jobs:
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > karino.jks
           ls -la karino.jks
-          file karino.jks
-
-      - name: List repo files
-        run: ls -la
 
       - name: Sign APK
         run: |
           APKSIGNER="$HOME/android-sdk/build-tools/34.0.0/apksigner"
-          echo "Using: $APKSIGNER"
           chmod +x "$APKSIGNER"
           
           "$APKSIGNER" sign \
@@ -59,9 +54,11 @@ jobs:
           echo "✅ Signed successfully!"
           ls -la karino-signed.apk
 
-      - name: Verify
+      - name: Verify and print SHA-256
         run: |
-          "$HOME/android-sdk/build-tools/34.0.0/apksigner" verify --verbose karino-signed.apk || true
+          echo "========== SHA-256 FINGERPRINT =========="
+          "$HOME/android-sdk/build-tools/34.0.0/apksigner" verify --print-certs karino-signed.apk
+          echo "========================================="
 
       - name: Upload Signed APK
         uses: actions/upload-artifact@v4
