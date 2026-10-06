@@ -1,10 +1,14 @@
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "io.github.heydarmahdavi.karino",
-    "sha256_cert_fingerprints": [
-      "f27f4a5972e1222ea315a6e72fde69fd0911697a28a518139c6b7fcfa4c4c68d"
-    ]
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.heydarmahdavi.karino",
+      "sha256_cert_fingerprints": [
+        "F2:7F:4A:59:72:E1:22:2E:A3:15:A6:E7:2F:DE:69:FD:09:11:69:7A:28:A5:18:13:9C:6B:7F:C4:A4:C4:C6:8D"
+      ]
+    }
   }
-}]
+]
