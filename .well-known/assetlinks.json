@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "io.github.heydarmahdavi.karino",
+    "sha256_cert_fingerprints": [
+      "f27f4a5972e1222ea315a6e72fde69fd0911697a28a518139c6b7fcfa4c4c68d"
+    ]
+  }
+}]
